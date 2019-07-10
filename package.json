@@ -17,11 +17,11 @@
   },
   "homepage": "https://github.com/spriteful/node-tfjs-retrain#readme",
   "dependencies": {
-    "@tensorflow/tfjs-node": "^1.2.1",
+    "@tensorflow/tfjs-node-gpu": "^1.2.3",
     "fast-glob": "^3.0.0",
     "fs-extra": "^8.0.1",
     "minimist": "^1.2.0",
-    "node-fetch": "^2.6.0",
+    "pngjs": "^3.4.0",
     "sharp": "^0.22.1"
   }
 }
