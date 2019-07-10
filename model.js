@@ -1,5 +1,5 @@
 //@ts-check
-const tf = require("@tensorflow/tfjs-node");
+const tf = require("@tensorflow/tfjs-node-gpu");
 const fse = require("fs-extra");
 const path = require("path");
 

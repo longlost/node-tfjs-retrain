@@ -19,6 +19,26 @@ Excellent article from James Thomas that helped (_skip the stuff about downloadi
 -   Create sample images:  
     `node create_images.js C:/Retraining_Project/Images`
 
+
+- 	app.js args:
+
+		--batch_size_fraction -> Number default 0.2
+		--dense_units 				-> Number default 100
+		--epochs 							-> Number default 50
+		--learning_rate 			-> Number default 0.0001
+		--sizing 							-> String default 'cover'
+
+
+- 	augment_images.js args:
+
+		--flip_images 					-> Boolean default false
+		--adjust_brightness 		-> Boolean default false
+		--ignore_subdirectories -> Boolean default false
+		--labels_to_skip 				-> String default ''
+
+
+
+
 ## Help
 
 I'm quite new to Node and TF, so there's a lot of room for cleanup and code improvements. My initial goal was to get something working and worry about minor improvements later. Feel free to submit a PR :)

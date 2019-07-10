@@ -1,40 +1,41 @@
 // @ts-check
-const tf = require("@tensorflow/tfjs-node");
-
+const tf       = require("@tensorflow/tfjs-node-gpu");
 const minimist = require("minimist");
-const model = require("./model");
-const data = require("./data");
-const ui = require("./ui_mock");
+const model    = require("./model");
+const data     = require("./data");
+const ui       = require("./ui_mock");
 
 const Model = new model();
 
-let args = minimist(process.argv.slice(2), {
-    string: ["images_dir", "model_dir"],
-    boolean: true,
-    default: {
-        skip_training: false,
-        batch_size_fraction: 0.2,
-        dense_units: 100,
-        epochs: 50,
-        learning_rate: 0.0001
-    }
+const args = minimist(process.argv.slice(2), {
+  string: ['images_dir', 'model_dir'],
+  boolean: true,
+  default: {
+    skip_training:       false,
+    batch_size_fraction: 0.2,
+    dense_units:         100,
+    epochs:              50,
+    learning_rate:       0.0001,
+    sizing:             'cover' /* or 'contain' */
+  }
 });
 
 if (!args.images_dir) {
-    throw new Error("--images_dir not specified.");
+  throw new Error("--images_dir not specified.");
 }
 
 if (!args.model_dir) {
-    throw new Error("--model_dir not specified.");
+  throw new Error("--model_dir not specified.");
 }
+
 
 async function init() {
-    await data.loadLabelsAndImages(args.images_dir);
-
-    console.time("Loading Model");
-    await Model.init();
-    console.timeEnd("Loading Model");
+  await data.loadLabelsAndImages(args.images_dir, args.sizing);
+  console.time("Loading Model");
+  await Model.init();
+  console.timeEnd("Loading Model");
 }
+
 
 async function testModel() {
     console.log("Testing Model");
@@ -83,6 +84,9 @@ async function testModel() {
             .map(item => item.images.length)
             .reduce((p, c) => p + c);
         console.log(`Total Mislabeled: ${totalMislabeled} / ${totalImages}`);
+        const accuracy = (1 - (totalMislabeled / totalImages)) * 100;
+        console.log(`Accuracy ${accuracy.toFixed(2)}%`);
+        console.log('😈 🧠');
     }
 }
 
@@ -114,20 +118,20 @@ async function trainModel() {
     }
 }
 
+
 init()
     .then(async () => {
+      try {
         await data.loadTrainingData(Model.decapitatedMobilenet);
         console.log("Loaded Training Data");
 
         if (args.skip_training) return;
+        await trainModel();
 
-        try {
-            await trainModel();
-
-            await Model.saveModel(args.model_dir);
-        } catch (error) {
-            console.error(error);
-        }
+        await Model.saveModel(args.model_dir);
+      } catch (error) {
+          console.error(error);
+      }
     })
     .then(() => {
         testModel();
