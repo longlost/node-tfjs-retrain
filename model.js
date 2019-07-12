@@ -5,15 +5,23 @@ const path = require("path");
 
 // Loads mobilenet and returns a model that returns the internal activation
 // we'll use as input to our classifier model.
-async function loadDecapitatedMobilenet() {
-    const mobilenet = await tf.loadLayersModel(
-        "https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_1.0_224/model.json"
-    );
+const loadDecapitatedMobilenet = async () => {
+  // for a list of available mobilenet models see:
+  // v1 models: https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet_v1.md#pre-trained-models
+  // v2 models: https://github.com/tensorflow/models/blob/master/research/slim/nets/mobilenet/README.md
+  
+  // mobilenet v1 224px with largest alpha (highest accuracy, longest inference times)
+  const mobilenet = await tf.loadLayersModel(
+    'https://storage.googleapis.com/tfjs-models/tfjs/mobilenet_v1_1.0_224/model.json'
+  );
+  // Return a model that outputs an internal activation.
+  const layer = mobilenet.getLayer('conv_pw_13_relu');
+  return tf.model({
+    inputs:  mobilenet.inputs, 
+    outputs: layer.output
+  });
+};
 
-    // Return a model that outputs an internal activation.
-    const layer = mobilenet.getLayer("conv_pw_13_relu");
-    return tf.model({ inputs: mobilenet.inputs, outputs: layer.output });
-}
 
 class Model {
     constructor() {
@@ -142,27 +150,44 @@ class Model {
             tf.util.createShuffledIndices(dataset.labels.shape[0])
         );
 
-        // Train the model! Model.fit() will shuffle xs & ys so we don't have to.
-        console.time("Training Time");
+        // // Train the model! Model.fit() will shuffle xs & ys so we don't have to.
+        // console.time("Training Time");
+
+        // cli command to start tensorboard:
+        // tensorboard --logdir /tmp/tf_fit_logs
+        
         return this.model.fit(
-            dataset.images.gather(shuffledIndices),
-            dataset.labels.gather(shuffledIndices),
-            {
-                batchSize,
-                epochs: trainingParams.epochs,
-                validationSplit: 0.15,
-                callbacks: {
-                    onBatchEnd: async (batch, logs) => {
-                        trainingParams.trainStatus(
-                            "Loss: " + logs.loss.toFixed(5)
-                        );
-                    },
-                    onTrainEnd: async logs => {
-                        console.timeEnd("Training Time");
-                    }
-                }
-            }
+          dataset.images.gather(shuffledIndices),
+          dataset.labels.gather(shuffledIndices),
+          {
+            batchSize,
+            epochs:          trainingParams.epochs,
+            validationSplit: 0.15,
+            callbacks:       tf.node.tensorBoard('/tmp/tf_fit_logs')
+          }
         );
+
+
+
+        // return this.model.fit(
+        //     dataset.images.gather(shuffledIndices),
+        //     dataset.labels.gather(shuffledIndices),
+        //     {
+        //         batchSize,
+        //         epochs: trainingParams.epochs,
+        //         validationSplit: 0.15,
+        //         callbacks: {
+        //             onBatchEnd: async (batch, logs) => {
+        //                 trainingParams.trainStatus(
+        //                     "Loss: " + logs.loss.toFixed(5)
+        //                 );
+        //             },
+        //             onTrainEnd: async logs => {
+        //                 console.timeEnd("Training Time");
+        //             }
+        //         }
+        //     }
+        // );
     }
 }
 

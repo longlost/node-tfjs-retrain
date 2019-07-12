@@ -27,6 +27,7 @@ Excellent article from James Thomas that helped (_skip the stuff about downloadi
 		--epochs 							-> Number default 50
 		--learning_rate 			-> Number default 0.0001
 		--sizing 							-> String default 'cover'
+		--logdir 							-> String default '/tmp/tf_fit_logs', tensorboard --logdir /tmp/tf_fit_logs
 
 
 - 	augment_images.js args:
