@@ -1,9 +1,9 @@
 // @ts-check
-const tf       = require("@tensorflow/tfjs-node-gpu");
-const minimist = require("minimist");
-const model    = require("./model");
-const data     = require("./data");
-const ui       = require("./ui_mock");
+const tf       = require('@tensorflow/tfjs-node-gpu');
+const minimist = require('minimist');
+const model    = require('./model');
+const data     = require('./data');
+const ui       = require('./ui_mock');
 
 const Model = new model();
 
@@ -31,108 +31,119 @@ if (!args.model_dir) {
 
 async function init() {
   await data.loadLabelsAndImages(args.images_dir, args.sizing);
-  console.time("Loading Model");
+  console.time('Loading Model');
   await Model.init();
-  console.timeEnd("Loading Model");
+  console.timeEnd('Loading Model');
 }
 
 
 async function testModel() {
-    console.log("Testing Model");
-    await Model.loadModel(args.model_dir);
+  console.log('Testing Model');
+  await Model.loadModel(args.model_dir);
 
-    if (Model.model) {
-        console.time("Testing Predictions");
-        console.log(Model.model.summary());
+  if (Model.model) {
+    console.time('Testing Predictions');
+    console.log(Model.model.summary());
 
-        let totalMislabeled = 0;
-        let mislabeled = [];
-        let imageIndex = 0;
-        data.labelsAndImages.forEach(item => {
-            let results = [];
-            item.images.forEach(img_filename => {
-                tf.tidy(() => {
-                    let embeddings = data.dataset
-                        ? data.getEmbeddingsForImage(imageIndex++)
-                        : data.fileToTensor(img_filename);
+    const mislabeled    = [];
+    let totalMislabeled = 0;
+    let imageIndex      = 0;
 
-                    let prediction = Model.getPrediction(embeddings);
-                    results.push({
-                        class: prediction.label,
-                        probability: (
-                            Number(prediction.confidence) * 100
-                        ).toFixed(1)
-                    });
-                    if (prediction.label !== item.label) {
-                        mislabeled.push({
-                            class: item.label,
-                            prediction: prediction.label,
-                            filename: img_filename
-                        });
-                        totalMislabeled++;
-                    }
-                });
+    data.labelsAndImages.forEach(item => {
+      const results = [];
+      item.images.forEach(filename => {
+        tf.tidy(() => {
+          const embeddings = data.dataset ? 
+            data.getEmbeddingsForImage(imageIndex += 1) : 
+            data.fileToTensor(filename);
+          const prediction  = Model.getPrediction(embeddings);
+          const probability = 
+            (Number(prediction.confidence) * 100).toFixed(1);
+
+          results.push({
+            class: prediction.label,
+            probability 
+          });
+
+          if (prediction.label !== item.label) {
+            mislabeled.push({
+              class:      item.label,
+              prediction: prediction.label,
+              filename
             });
-            console.log({
-                label: item.label,
-                predictions: results.slice(0, 10)
-            });
+            totalMislabeled += 1;
+          }
         });
-        console.timeEnd("Testing Predictions");
-        console.log(mislabeled);
-        const totalImages = data.labelsAndImages
-            .map(item => item.images.length)
-            .reduce((p, c) => p + c);
-        console.log(`Total Mislabeled: ${totalMislabeled} / ${totalImages}`);
-        const accuracy = (1 - (totalMislabeled / totalImages)) * 100;
-        console.log(`Accuracy ${accuracy.toFixed(2)}%`);
-        console.log('😈 🧠');
-    }
+      });
+
+      console.log({
+        label:       item.label,
+        predictions: results.slice(0, 10)
+      });
+    });
+
+    console.timeEnd("Testing Predictions");
+    console.log(mislabeled);
+
+    const totalImages = data.labelsAndImages.
+      map(item => item.images.length).
+      reduce((p, c) => p + c);
+
+    console.log(`Total Mislabeled: ${totalMislabeled} / ${totalImages}`);
+
+    const accuracy = (1 - (totalMislabeled / totalImages)) * 100;
+
+    console.log(`Accuracy ${accuracy.toFixed(2)}%`);
+    console.log('😈 🧠');
+  }
 }
+
 
 async function trainModel() {
-    if (data.dataset.images) {
-        const trainingParams = {
-            batchSizeFraction: args.batch_size_fraction,
-            denseUnits: args.dense_units,
-            epochs: args.epochs,
-            learningRate: args.learning_rate,
-            trainStatus: ui.trainStatus
-        };
+  if (data.dataset.images) {
+    const trainingParams = {
+      batchSizeFraction: args.batch_size_fraction,
+      denseUnits:        args.dense_units,
+      epochs:            args.epochs,
+      learningRate:      args.learning_rate,
+      trainStatus:       ui.trainStatus
+    };
 
-        const labels = data.labelsAndImages.map(element => element.label);
-        const trainResult = await Model.train(
-            data.dataset,
-            labels,
-            trainingParams
-        );
-        console.log("Training Complete!");
-        const losses = trainResult.history.loss;
-        console.log(
-            `Final Loss: ${Number(losses[losses.length - 1]).toFixed(5)}`
-        );
+    const labels = data.labelsAndImages.map(element => element.label);
+    const trainResult = await Model.train(
+      data.dataset,
+      labels,
+      trainingParams
+    );
 
-        console.log(Model.model.summary());
-    } else {
-        new Error("Must load data before training the model.");
-    }
+    console.log('Training Complete!');
+
+    const {loss} = trainResult.history;
+    const losses = Number(loss[loss.length - 1]).toFixed(5);
+
+    console.log(`Final Loss: ${losses}`);
+    console.log(Model.model.summary());
+  } 
+  else {
+    new Error('Must load data before training the model.');
+  }
 }
 
 
-init()
-    .then(async () => {
-      try {
-        await data.loadTrainingData(Model.decapitatedMobilenet);
-        console.log("Loaded Training Data");
+(async function() {
+  try {
+    await init()
+    await data.loadTrainingData(Model.decapitatedMobilenet);
+    
+    console.log('Loaded Training Data');
 
-        if (args.skip_training) return;
-        await trainModel();
+    if (args.skip_training) return;
 
-        await Model.saveModel(args.model_dir);
-      } catch (error) {
-          console.error(error);
-      }
-    })
-    .then(() => {
-        testModel();
-    });
+    await trainModel();
+    await Model.saveModel(args.model_dir);    
+    await testModel();
+  } 
+  catch (error) {
+    console.error(error);
+  }
+}());
