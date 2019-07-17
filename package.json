@@ -1,6 +1,6 @@
 {
   "name": "@spriteful/node-tfjs-retrain",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Tensorflow.js mobilenet transfer learning cli tool",
   "main": "app.js",
   "scripts": {

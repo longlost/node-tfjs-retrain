@@ -20,6 +20,28 @@ Excellent article from James Thomas that helped (_skip the stuff about downloadi
     `node create_images.js C:/Retraining_Project/Images`
 
 
+_ 	Full example with tensorboard:
+
+		cli commands to start tensorboard (localhost:6006)
+
+		start virtual environment -
+
+    	source ./venv/bin/activate
+
+ 		start tensorboard on localhost:6006 -
+
+    	(venv) $ tensorboard --logdir /tmp/tf_fit_logs
+
+ 		node-tfjs-retrain cli -
+ 
+    	node app.js --images_dir="/Users/claymation296/dev/magic/synthetic" --model_dir="/Users/claymation296/dev/nathanML/ml-lock/src/model" --sizing="contain" --epochs="500"
+
+ 		shutdown virtual environment
+
+    	(venv) $ deactivate
+
+
+
 - 	app.js args:
 
 		--batch_size_fraction -> Number default 0.2
