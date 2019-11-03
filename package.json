@@ -1,5 +1,5 @@
 {
-  "name": "@spriteful/node-tfjs-retrain",
+  "name": "@longlost/node-tfjs-retrain",
   "version": "1.0.3",
   "description": "Tensorflow.js mobilenet transfer learning cli tool",
   "main": "app.js",
@@ -8,20 +8,20 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/spriteful/node-tfjs-retrain.git"
+    "url": "git+https://github.com/longlost/node-tfjs-retrain.git"
   },
-  "author": "Spriteful spritefuldev@gmail.com",
+  "author": "Longlost Dev longlostdev@gmail.com",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/spriteful/node-tfjs-retrain/issues"
+    "url": "https://github.com/longlost/node-tfjs-retrain/issues"
   },
-  "homepage": "https://github.com/spriteful/node-tfjs-retrain#readme",
+  "homepage": "https://github.com/longlost/node-tfjs-retrain#readme",
   "dependencies": {
-    "@tensorflow/tfjs-node-gpu": "^1.2.3",
-    "fast-glob": "^3.0.0",
+    "@tensorflow/tfjs-node-gpu": "^1.3.1",
+    "fast-glob": "^3.1.0",
     "fs-extra": "^8.0.1",
     "minimist": "^1.2.0",
     "pngjs": "^3.4.0",
-    "sharp": "^0.22.1"
+    "sharp": "^0.23.2"
   }
 }
